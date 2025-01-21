@@ -12,10 +12,12 @@ import android.content.IntentSender
 import android.content.pm.PackageInstaller
 import android.content.pm.PackageInstaller.SessionParams
 import android.os.BatteryManager
+import android.os.Build
 import android.os.Bundle
 import android.os.UserManager
 import android.provider.Settings
 import android.view.View
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
 import pl.mrugacz95.kiosk.databinding.ActivityMainBinding
@@ -30,6 +32,7 @@ class MainActivity : AppCompatActivity() {
         const val LOCK_ACTIVITY_KEY = "pl.mrugacz95.kiosk.MainActivity"
     }
 
+    @RequiresApi(Build.VERSION_CODES.P)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -57,13 +60,14 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra(LOCK_ACTIVITY_KEY, false)
             startActivity(intent)
         }
-        binding.btInstallApp.setOnClickListener {
-            installApp()
-        }
+//        binding.btInstallApp.setOnClickListener {
+//            installApp()
+//        }
     }
 
     private fun isAdmin() = mDevicePolicyManager.isDeviceOwnerApp(packageName)
 
+    @RequiresApi(Build.VERSION_CODES.P)
     private fun setKioskPolicies(enable: Boolean, isAdmin: Boolean) {
         if (isAdmin) {
             setRestrictions(enable)
@@ -73,7 +77,7 @@ class MainActivity : AppCompatActivity() {
             setKeyGuardEnabled(enable)
         }
         setLockTask(enable, isAdmin)
-        setImmersiveMode(enable)
+//        setImmersiveMode(enable)
     }
 
     // region restrictions
@@ -105,10 +109,15 @@ class MainActivity : AppCompatActivity() {
         mDevicePolicyManager.setGlobalSetting(mAdminComponentName, Settings.Global.STAY_ON_WHILE_PLUGGED_IN, "0")
     }
 
+    @RequiresApi(Build.VERSION_CODES.P)
     private fun setLockTask(start: Boolean, isAdmin: Boolean) {
         if (isAdmin) {
             mDevicePolicyManager.setLockTaskPackages(
                 mAdminComponentName, if (start) arrayOf(packageName) else arrayOf()
+            )
+            mDevicePolicyManager.setLockTaskFeatures(
+                mAdminComponentName,
+                DevicePolicyManager.LOCK_TASK_FEATURE_SYSTEM_INFO
             )
         }
         if (start) {
